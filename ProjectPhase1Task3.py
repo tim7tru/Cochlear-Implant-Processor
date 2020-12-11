@@ -219,7 +219,7 @@ def applyEnvelopeDetection(input_signal, cutoff_frequency, current_rate):
         high += interval_length
 
     # Applying Lowpass Filter
-    lowpass = applyButterworthLowPass(data=resulting_signal, cutoff=cutoff_frequency, fs=current_rate)
+    lowpass = applyButterworthLowPass(data=resulting_signal, cutoff=2*cutoff_frequency, fs=current_rate, order=2)
     return lowpass
 
 
@@ -351,7 +351,9 @@ def processAudioFile(file, channel_ranges, envelope_detection_freq):
     # playSoundFromData(data=mono, rate=sample_rate)
 
     """Downsample Mono Audio"""
-    signal = downsampleData(data=mono, downsample_factor=sample_rate / target_rate)
+    signal = mono
+    if sample_rate > target_rate:
+        signal = downsampleData(data=mono, downsample_factor=sample_rate / target_rate)
     writeAudioFile(file_name=wav_mono_downsampled, rate=target_rate, data=signal)
 
     """Creating the channels of BPFs"""
@@ -416,49 +418,16 @@ To process audio files,
 if __name__ == "__main__":
     num_of_channels = int(input('How many audio channels?'))
     audio_files = np.array(os.listdir('./audio/raw'))
+    channels = np.zeros((num_of_channels, 2))
 
-    # for i in range(num_of_channels):
-    #     low = 0
-    #     high = 8000
-    #     while low < high and (low < 100 and high > 7999):
-    #         low = int(input('For channel ' + str(i + 1) + ', what is the low frequency?'))
-    #         high = int(input('For channel ' + str(i + 1) + ', what is the high frequency?'))
-    #     channels[i][0] = low
-    #     channels[i][1] = high
-
-    channels = np.array([
-        [188, 313],
-        [313, 438],
-        [438, 563],
-        [563, 688],
-        [688, 813],
-        [813, 938],
-        [938, 1063],
-        [1063, 1188],
-        [1188, 1313],
-        [1313, 1563],
-        [1563, 1813],
-        [1813, 2063],
-        [2063, 2313],
-        [2313, 2688],
-        [2688, 3063],
-        [3063, 3563],
-        [3563, 4068],
-        [4063, 4688],
-        [4688, 5313],
-        [5313, 6063],
-        [6063, 6938],
-        [6938, 7938]
-    ])
-    #
-    # channels = np.array([
-    #     [100, 200],
-    #     [200, 400],
-    #     [400, 1000],
-    #     [1000, 2000],
-    #     [2000, 4000],
-    #     [4000, 7999]
-    # ])
+    for i in range(num_of_channels):
+        low = 0
+        high = 8000
+        while low < high and (low < 100 and high > 7999):
+            low = int(input('For channel ' + str(i + 1) + ', what is the low frequency?'))
+            high = int(input('For channel ' + str(i + 1) + ', what is the high frequency?'))
+        channels[i][0] = low
+        channels[i][1] = high
 
     env_det_freq = int(input('What should the envelope detection frequency be?'))
 
@@ -470,6 +439,6 @@ if __name__ == "__main__":
                 processAudioFile(file=audio, channel_ranges=channels,
                                  envelope_detection_freq=env_det_freq)
     else:
-        new = audio_files[0][:-4]
+        new = "MS_N_Timmy"
         processAudioFile(file=new, channel_ranges=channels,
                          envelope_detection_freq=env_det_freq)
